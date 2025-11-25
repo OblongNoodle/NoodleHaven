@@ -63,22 +63,31 @@ public class Inventory extends Widget implements DTarget {
 	}
     }
 
-    public void draw(GOut g) {
-	Coord c = new Coord();
-	int mo = 0;
-	for(c.y = 0; c.y < isz.y; c.y++) {
-	    for(c.x = 0; c.x < isz.x; c.x++) {
-		if((sqmask != null) && sqmask[mo++]) {
-		    g.chcolor(64, 64, 64, 255);
-		    g.image(invsq, c.mul(sqsz));
-		    g.chcolor();
-		} else {
-		    g.image(invsq, c.mul(sqsz));
+	public void draw(GOut g) {
+		Coord c = new Coord();
+		int mo = 0;
+		for(c.y = 0; c.y < isz.y; c.y++) {
+			for(c.x = 0; c.x < isz.x; c.x++) {
+				Coord sc = c.mul(sqsz);
+
+				// Draw brown background
+				g.chcolor(54, 47, 36, 255);
+				g.frect(sc, sqsz);
+
+				// Draw border
+				g.chcolor(0, 0, 0, 255);
+				g.rect(sc, sqsz);
+				g.chcolor();
+
+				if((sqmask != null) && sqmask[mo++]) {
+					g.chcolor(64, 64, 64, 255);
+					g.frect(sc.add(2, 2), sqsz.sub(4, 4));
+					g.chcolor();
+				}
+			}
 		}
-	    }
+		super.draw(g);
 	}
-	super.draw(g);
-    }
 	
     public Inventory(Coord sz) {
 	super(sqsz.mul(sz).add(1, 1));

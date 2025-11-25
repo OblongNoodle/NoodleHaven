@@ -199,4 +199,16 @@
     <delete dir="lib/ext" />
     <delete dir="bin" />
   </target>
+
+  <target name="extract-images" depends="hafen-client">
+    <java classname="haven.ResourceExtractor" fork="true" dir="${basedir}">
+      <classpath>
+        <pathelement path="build/classes"/>
+        <fileset dir="lib">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </java>
+  </target>
+
 </project>

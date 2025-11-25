@@ -34,6 +34,7 @@ import java.util.function.*;
 import haven.resutil.FoodInfo;
 import haven.resutil.Curiosity;
 import static haven.PUtils.*;
+import noodlehaven.ui.SimpleDeco;
 
 public class CharWnd extends Window {
     public static final RichText.Foundry ifnd = new RichText.Foundry(RichText.ImageSource.res(Resource.remote()), java.awt.font.TextAttribute.FAMILY, "SansSerif", java.awt.font.TextAttribute.SIZE, UI.scale(9)).aa(true);
@@ -56,6 +57,10 @@ public class CharWnd extends Window {
     public QuestWnd quest;
     public final Tabs.Tab battrtab, sattrtab, skilltab, fighttab, woundtab, questtab;
     public int exp, enc;
+
+	protected Deco makedeco() {
+		return(new SimpleDeco(this));
+	}
 
     public static class TabProxy extends AWidget {
 	public final Class<? extends Widget> tcl;

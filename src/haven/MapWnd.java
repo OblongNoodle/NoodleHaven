@@ -44,6 +44,7 @@ import static haven.MCache.cmaps;
 import static haven.Utils.eq;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.*;
+import noodlehaven.ui.SimpleDeco;
 
 public class MapWnd extends Window implements Console.Directory {
     public static final Resource markcurs = Resource.local().loadwait("gfx/hud/curs/flag");
@@ -76,6 +77,7 @@ public class MapWnd extends Window implements Console.Directory {
     public static final KeyBinding kb_hmark = KeyBinding.get("mapwnd/hmark", KeyMatch.forchar('M', KeyMatch.C));
     public static final KeyBinding kb_compact = KeyBinding.get("mapwnd/compact", KeyMatch.forchar('A', KeyMatch.M));
     public static final KeyBinding kb_prov = KeyBinding.get("mapwnd/prov", KeyMatch.nil);
+
     public MapWnd(MapFile file, MapView mv, Coord sz, String title) {
 	super(sz, title, true);
 	this.file = file;
@@ -723,9 +725,9 @@ public class MapWnd extends Window implements Console.Directory {
 	}
     }
 
-    protected Deco makedeco() {
-	return(new DefaultDeco(true).dragsize(true));
-    }
+	protected Deco makedeco() {
+		return(new SimpleDeco(this));
+	}
 
     public void markobj(long gobid, long oid, Indir<Resource> resid, String nm) {
 	synchronized(deferred) {

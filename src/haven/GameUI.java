@@ -33,6 +33,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.WritableRaster;
 import haven.render.Location;
 import static haven.Inventory.invsq;
+import noodlehaven.ui.SimpleDeco;
 
 public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.Handler {
     private static final int blpw = UI.scale(142), brpw = UI.scale(142);
@@ -280,20 +281,20 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 		    menupanel.move();
 		}
 	    });
-	menupanel = add(new Hidepanel("menu", new Indir<Coord>() {
-		public Coord get() {
-		    return(new Coord(GameUI.this.sz.x, Math.min(brpanel.c.y - UI.scale(79), GameUI.this.sz.y - menupanel.sz.y)));
-		}
-	    }, new Coord(1, 0)));
+		menupanel = add(new Hidepanel("menu", new Indir<Coord>() {
+			public Coord get() {
+				return(new Coord(GameUI.this.sz.x - menupanel.sz.x + UI.scale(245),
+						GameUI.this.sz.y - menupanel.sz.y - UI.scale(200)));
+			}
+		}, new Coord(1, 0)));
 	ulpanel = add(new Hidepanel("gui-ul", null, new Coord(-1, -1)));
 	umpanel = add(new Hidepanel("gui-um", null, new Coord( 0, -1)));
 	urpanel = add(new Hidepanel("gui-ur", null, new Coord( 1, -1)));
 	mapmenupanel.add(new MapMenu(), 0, 0);
-	blpanel.add(new Img(Resource.loadtex("gfx/hud/blframe")), 0, 0);
 	minimapc = new Coord(UI.scale(4), UI.scale(34));
 	Tex rbtnbg = Resource.loadtex("gfx/hud/csearch-bg");
-	Img brframe = brpanel.add(new Img(Resource.loadtex("gfx/hud/brframe")), rbtnbg.sz().x - UI.scale(22), 0);
-	menugridc = brframe.c.add(UI.scale(20), UI.scale(34));
+	Coord brframe_c = new Coord(rbtnbg.sz().x - UI.scale(22), 0); // Store the position instead
+	menugridc = brframe_c.add(UI.scale(20), UI.scale(34));
 	Img rbtnimg = brpanel.add(new Img(rbtnbg), 0, brpanel.sz.y - rbtnbg.sz().y);
 	menupanel.add(new MainMenu(), 0, 0);
 	menubuttons(rbtnimg);
@@ -400,8 +401,8 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 		    updfold(true);
 		}
 	    };
-	menupanel.add(fold_br[0], 0, 0);
-	fold_br[0].lower();
+	//menupanel.add(fold_br[0], 0, 0);
+	//fold_br[0].lower();
 	brpanel.adda(fold_br[1], brpanel.sz.x, UI.scale(32), 1, 1);
 	adda(fold_br[2], 1, 1);
 	fold_br[2].lower();
@@ -572,6 +573,9 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     }
 
     public static class Hidewnd extends Window {
+		protected Deco makedeco() {
+			return(new SimpleDeco(this));
+		}
 	Hidewnd(Coord sz, String cap, boolean lg) {
 	    super(sz, cap, lg);
 	}
@@ -592,6 +596,10 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     static class Zergwnd extends Hidewnd {
 	Tabs tabs = new Tabs(Coord.z, Coord.z, this);
 	final TButton kin, pol, pol2;
+
+		protected Deco makedeco() {
+			return(new SimpleDeco(this));
+		}
 
 	class TButton extends IButton {
 	    Tabs.Tab tab = null;
@@ -1382,13 +1390,38 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	}
     }
 
-    public static class MenuCheckBox extends ICheckBox {
-	MenuCheckBox(String base, KeyBinding gkey, String tooltip) {
-	    super("gfx/hud/" + base, "", "-d", "-h", "-dh");
-	    setgkey(gkey);
-	    settip(tooltip);
+	public static class MenuCheckBox extends ICheckBox {
+		MenuCheckBox(String base, KeyBinding gkey, String tooltip) {
+			super(loadCustomButton(base), loadCustomButton(base + "-d"),
+					loadCustomButton(base + "-h"), loadCustomButton(base + "-dh"));
+			setgkey(gkey);
+			settip(tooltip);
+		}
+
+		private static Tex loadCustomButton(String name) {
+			try {
+				java.io.File customFile = new java.io.File("res/gfx/hud/" + name + ".png");
+				if(customFile.exists()) {
+					java.awt.image.BufferedImage original = javax.imageio.ImageIO.read(customFile);
+
+					// Scale down to 40x40
+					int targetSize = UI.scale(40);
+					java.awt.image.BufferedImage scaled = new java.awt.image.BufferedImage(
+							targetSize, targetSize, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+					java.awt.Graphics2D g = scaled.createGraphics();
+					g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+							java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+					g.drawImage(original, 0, 0, targetSize, targetSize, null);
+					g.dispose();
+
+					return(new TexI(scaled));
+				}
+			} catch(Exception e) {
+				System.err.println("Error loading custom button " + name + ": " + e.getMessage());
+			}
+			return(Resource.loadtex("gfx/hud/" + name));
+		}
 	}
-    }
 
     public static final KeyBinding kb_inv = KeyBinding.get("inv", KeyMatch.forcode(KeyEvent.VK_TAB, 0));
     public static final KeyBinding kb_equ = KeyBinding.get("equ", KeyMatch.forchar('E', KeyMatch.C));
@@ -1397,19 +1430,38 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public static final KeyBinding kb_opt = KeyBinding.get("opt", KeyMatch.forchar('O', KeyMatch.C));
     private static final Tex menubg = Resource.loadtex("gfx/hud/rbtn-bg");
     public class MainMenu extends Widget {
-	public MainMenu() {
-	    super(menubg.sz());
-	    add(new MenuCheckBox("rbtn-inv", kb_inv, "Inventory"), 0, 0).state(() -> wndstate(invwnd)).click(() -> togglewnd(invwnd));
-	    add(new MenuCheckBox("rbtn-equ", kb_equ, "Equipment"), 0, 0).state(() -> wndstate(equwnd)).click(() -> togglewnd(equwnd));
-	    add(new MenuCheckBox("rbtn-chr", kb_chr, "Character Sheet"), 0, 0).state(() -> wndstate(chrwdg)).click(() -> togglewnd(chrwdg));
-	    add(new MenuCheckBox("rbtn-bud", kb_bud, "Kith & Kin"), 0, 0).state(() -> wndstate(zerg)).click(() -> togglewnd(zerg));
-	    add(new MenuCheckBox("rbtn-opt", kb_opt, "Options"), 0, 0).state(() -> wndstate(opts)).click(() -> togglewnd(opts));
-	}
+        public MainMenu() {
+            super(Coord.z);
 
-	public void draw(GOut g) {
-	    g.image(menubg, Coord.z);
-	    super.draw(g);
-	}
+            int buttonSize = UI.scale(40);
+            int spacing = UI.scale(2);
+            int y = 0;
+
+            MenuCheckBox inv = add(new MenuCheckBox("rbtn-inv", kb_inv, "Inventory"), 0, y);
+            inv.state(() -> wndstate(invwnd)).click(() -> togglewnd(invwnd));
+            y += buttonSize + spacing;
+
+            MenuCheckBox equ = add(new MenuCheckBox("rbtn-equ", kb_equ, "Equipment"), 0, y);
+            equ.state(() -> wndstate(equwnd)).click(() -> togglewnd(equwnd));
+            y += buttonSize + spacing;
+
+            MenuCheckBox chr = add(new MenuCheckBox("rbtn-chr", kb_chr, "Character"), 0, y);
+            chr.state(() -> wndstate(chrwdg)).click(() -> togglewnd(chrwdg));
+            y += buttonSize + spacing;
+
+            MenuCheckBox bud = add(new MenuCheckBox("rbtn-bud", kb_bud, "Kith & Kin"), 0, y);
+            bud.state(() -> wndstate(zerg)).click(() -> togglewnd(zerg));
+            y += buttonSize + spacing;
+
+            MenuCheckBox opt = add(new MenuCheckBox("rbtn-opt", kb_opt, "Options"), 0, y);
+            opt.state(() -> wndstate(opts)).click(() -> togglewnd(opts));
+
+            pack();
+        }
+
+		public void draw(GOut g) {
+			super.draw(g);
+		}
     }
 
     public static final KeyBinding kb_map = KeyBinding.get("map", KeyMatch.forchar('A', KeyMatch.C));
@@ -1451,10 +1503,17 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 		});
 	}
 
-	public void draw(GOut g) {
-	    g.image(mapmenubg, Coord.z);
-	    super.draw(g);
-	}
+		public void draw(GOut g) {
+			g.chcolor(0, 0, 0, 200);
+			g.frect(Coord.z, sz);
+			g.chcolor();
+
+			g.chcolor(60, 60, 60, 255);
+			g.rect(Coord.z, sz);
+			g.chcolor();
+
+			super.draw(g);
+		}
     }
 
     public static final KeyBinding kb_shoot = KeyBinding.get("screenshot", KeyMatch.forchar('S', KeyMatch.M));
@@ -1688,24 +1747,33 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    }
 	    return(-1);
 	}
-    
-	public void draw(GOut g) {
-	    g.image(nkeybg, Coord.z);
-	    for(int i = 0; i < 10; i++) {
-		int slot = i + (curbelt * 12);
-		Coord c = beltc(i);
-		g.image(invsq, beltc(i));
-		try {
-		    if(belt[slot] != null) {
-			belt[slot].draw(g.reclip(c.add(UI.scale(1), UI.scale(1)), invsq.sz().sub(UI.scale(2), UI.scale(2))));
-		    }
-		} catch(Loading e) {}
-		g.chcolor(156, 180, 158, 255);
-		FastText.aprintf(g, c.add(invsq.sz().sub(UI.scale(2), 0)), 1, 1, "%d", (i + 1) % 10);
-		g.chcolor();
-	    }
-	    super.draw(g);
-	}
+
+		public void draw(GOut g) {
+			// Draw simple dark background instead of ornate texture
+			g.chcolor(0, 0, 0, 200);
+			g.frect(Coord.z, sz);
+			g.chcolor();
+
+			// Draw simple border
+			g.chcolor(60, 60, 60, 255);
+			g.rect(Coord.z, sz);
+			g.chcolor();
+
+			for(int i = 0; i < 10; i++) {
+				int slot = i + (curbelt * 12);
+				Coord c = beltc(i);
+				g.image(invsq, beltc(i));
+				try {
+					if(belt[slot] != null) {
+						belt[slot].draw(g.reclip(c.add(UI.scale(1), UI.scale(1)), invsq.sz().sub(UI.scale(2), UI.scale(2))));
+					}
+				} catch(Loading e) {}
+				g.chcolor(156, 180, 158, 255);
+				FastText.aprintf(g, c.add(invsq.sz().sub(UI.scale(2), 0)), 1, 1, "%d", (i + 1) % 10);
+				g.chcolor();
+			}
+			super.draw(g);
+		}
 	
 	public boolean globtype(GlobKeyEvent ev) {
 	    if((ev.code < KeyEvent.VK_0) || (ev.code > KeyEvent.VK_9))

@@ -28,10 +28,15 @@ package haven;
 
 import haven.render.*;
 import java.awt.event.KeyEvent;
+import noodlehaven.ui.SimpleDeco;
 
 public class OptWnd extends Window {
     public final Panel main;
     public Panel current;
+
+	protected Deco makedeco() {
+		return(new SimpleDeco(this));
+	}
 
     public void chpanel(Panel p) {
 	if(current != null)
