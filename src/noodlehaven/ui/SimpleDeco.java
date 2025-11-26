@@ -8,7 +8,8 @@ public class SimpleDeco extends Window.DragDeco {
     private UI.Grab dm = null;
     private Coord doff;
     private boolean dragsize = true;
-    private static final int rszm = UI.scale(7); // Resize margin
+    private static final int rszm = UI.scale(18); // Resize margin
+    private Boolean cachedResizable = null;
 
     public SimpleDeco(Window parent) {
         try {
@@ -38,6 +39,29 @@ public class SimpleDeco extends Window.DragDeco {
         drawframe(g);
         cdraw(g);
         super.draw(g);
+
+        // Only draw resize handle for resizable windows
+        Window wnd = (Window)parent;
+        if(isResizable(wnd)) {
+            // Draw resize handle on top of everything
+            Coord br = sz.sub(UI.scale(3), UI.scale(3));
+            int size = UI.scale(12);
+
+            g.chcolor(94, 75, 60, 255);
+            for(int i = 0; i < size; i++) {
+                g.line(new Coord(br.x - i, br.y),
+                        new Coord(br.x, br.y - i), 2);
+            }
+
+            g.chcolor(50, 40, 30, 255);
+            for(int i = 0; i < 3; i++) {
+                int offset = i * UI.scale(3) + UI.scale(2);
+                g.line(new Coord(br.x - offset, br.y - 1),
+                        new Coord(br.x - 1, br.y - offset), 2);
+            }
+
+            g.chcolor();
+        }
     }
 
     protected void cdraw(GOut g) {
@@ -65,23 +89,6 @@ public class SimpleDeco extends Window.DragDeco {
             Text title = cf.render(wnd.cap, java.awt.Color.WHITE);
             g.image(title.tex(), Coord.of(UI.scale(6), UI.scale(5)));
         }
-        Coord br = sz.sub(UI.scale(3), UI.scale(3));
-        int size = UI.scale(12);
-
-        g.chcolor(94, 75, 60, 255);
-        for(int i = 0; i < size; i++) {
-            g.line(new Coord(br.x - i, br.y),
-                    new Coord(br.x, br.y - i), 2);
-        }
-
-        g.chcolor(50, 40, 30, 255);
-        for(int i = 0; i < 3; i++) {
-            int offset = i * UI.scale(3) + UI.scale(2);
-            g.line(new Coord(br.x - offset, br.y - 1),
-                    new Coord(br.x - 1, br.y - offset), 2);
-        }
-
-        g.chcolor();
     }
 
     public boolean checkhit(Coord c) {
@@ -91,16 +98,17 @@ public class SimpleDeco extends Window.DragDeco {
     public boolean mousedown(MouseDownEvent ev) {
         System.out.println("SimpleDeco mousedown at: " + ev.c + ", sz=" + sz + ", dragsize=" + dragsize);
 
-        if(dragsize && (ev.b == 1)) {
+        // Check if this window should be resizable
+        Window wnd = (Window)parent;
+        boolean allowResize = isResizable(wnd);
+
+        if(allowResize && dragsize && (ev.b == 1)) {
             Coord c = ev.c;
 
-            // Only allow resize from bottom-right corner
             int resizeMargin = UI.scale(18);
 
-            // Check if in BOTTOM-RIGHT corner only
             if((c.x >= (sz.x - resizeMargin)) && (c.y >= (sz.y - resizeMargin))) {
                 System.out.println("RESIZE ZONE HIT!");
-                Window wnd = (Window)parent;
                 wnd.parent.setfocus(wnd);
                 wnd.raise();
                 dm = ui.grabmouse(this);
@@ -113,6 +121,47 @@ public class SimpleDeco extends Window.DragDeco {
             return true;
 
         return false;
+    }
+
+    protected boolean isResizable(Window wnd) {
+        // Use cached value if available
+        if(cachedResizable != null) {
+            return cachedResizable;
+        }
+
+        if(wnd.cap == null) {
+            System.out.println("Window has no caption, allowing resize");
+            cachedResizable = true;
+            return true;
+        }
+
+        String cap = wnd.cap.toLowerCase();
+        System.out.println("Window caption: '" + cap + "'");
+
+        // List of non-resizable windows
+        if(cap.equals("inventory")) {
+            cachedResizable = false;
+            return false;
+        }
+        if(cap.equals("equipment")) {
+            cachedResizable = false;
+            return false;
+        }
+        if(cap.equals("character sheet")) {
+            cachedResizable = false;
+            return false;
+        }
+        if(cap.equals("kith & kin")) {
+            cachedResizable = false;
+            return false;
+        }
+        if(cap.equals("options")) {
+            cachedResizable = false;
+            return false;
+        }
+
+        cachedResizable = true;
+        return true;
     }
 
     public boolean mouseup(MouseUpEvent ev) {

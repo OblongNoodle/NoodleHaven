@@ -33,7 +33,8 @@ import java.awt.event.KeyEvent;
 import java.awt.image.WritableRaster;
 import haven.render.Location;
 import static haven.Inventory.invsq;
-import noodlehaven.ui.SimpleDeco;
+import noodlehaven.ui.*;
+
 
 public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.Handler {
     private static final int blpw = UI.scale(142), brpw = UI.scale(142);
@@ -574,7 +575,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 
     public static class Hidewnd extends Window {
 		protected Deco makedeco() {
-			return(new SimpleDeco(this));
+			return(new NonResizableSimpleDeco(this));
 		}
 	Hidewnd(Coord sz, String cap, boolean lg) {
 	    super(sz, cap, lg);
@@ -598,7 +599,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	final TButton kin, pol, pol2;
 
 		protected Deco makedeco() {
-			return(new SimpleDeco(this));
+			return(new NonResizableSimpleDeco(this));
 		}
 
 	class TButton extends IButton {
@@ -812,8 +813,11 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 		     * existing mapfile with a new one is better. */
 		    throw(new RuntimeException("failed to load mapfile", e));
 		}
-		mmap = blpanel.add(new CornerMap(UI.scale(new Coord(133, 133)), file), minimapc);
-		mmap.lower();
+			CornerMap cm = new CornerMap(UI.scale(new Coord(133, 133)), file);
+			CornerMapWnd mmapwnd = new CornerMapWnd(cm, UI.scale(new Coord(133, 133)));
+			mmapwnd.pack();  // This triggers the resize calculation
+			add(mmapwnd, minimapc);
+			mmap = cm;
 		mapfile = new MapWnd(file, map, Utils.getprefc("wndsz-map", UI.scale(new Coord(700, 500))), "Map");
 		mapfile.show(Utils.getprefb("wndvis-map", false));
 		add(mapfile, Utils.getprefc("wndc-map", new Coord(50, 50)));
@@ -1180,6 +1184,34 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    return(cmdmap);
 	}
     }
+
+	public class CornerMapWnd extends Window {
+		public final CornerMap mmap;
+
+		public CornerMapWnd(CornerMap mmap, Coord sz) {
+			super(sz, "Minimap", true);
+			this.mmap = add(mmap, Coord.z);
+			mmap.resize(sz);
+		}
+//Noodle
+		public void resize(Coord sz) {
+			super.resize(sz);
+			Coord mmapsz = contentsz();
+			mmapsz = mmapsz.sub(0, UI.scale(15));
+			mmap.resize(mmapsz);
+		}
+
+		public Coord contentsz() {
+			if(deco != null) {
+				return deco.contarea().sz();
+			}
+			return sz;
+		}
+
+		protected Deco makedeco() {
+			return new SimpleDeco(this);
+		}
+	}
 
     private Coord lastsavegrid = null;
     private int lastsaveseq = -1;
