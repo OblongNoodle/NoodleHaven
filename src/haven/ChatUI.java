@@ -1480,15 +1480,30 @@ public class ChatUI extends Widget {
     private static final Tex bmf = Resource.loadtex("gfx/hud/chat-mid");
     private static final Tex bcbd = Resource.loadtex("gfx/hud/chat-close-g");
 	public void draw(GOut g) {
-		g.chcolor(54, 47, 36, 200);  // Same brown, semi-transparent
-		g.frect(Coord.z, sz);
-		g.chcolor();
-
-		g.chcolor(54, 47, 36, 200);  // Same brown, semi-transparent
+		g.chcolor(54, 47, 36, 200);
 		g.frect(Coord.z, sz);
 		g.chcolor();
 
 		super.draw(g);
+
+		// Draw resize handle in bottom-right corner
+		Coord br = sz.sub(UI.scale(3), UI.scale(3));
+		int size = UI.scale(12);
+
+		g.chcolor(94, 75, 60, 255);
+		for(int i = 0; i < size; i++) {
+			g.line(new Coord(br.x - i, br.y),
+					new Coord(br.x, br.y - i), 2);
+		}
+
+		g.chcolor(50, 40, 30, 255);
+		for(int i = 0; i < 3; i++) {
+			int offset = i * UI.scale(3) + UI.scale(2);
+			g.line(new Coord(br.x - offset, br.y - 1),
+					new Coord(br.x - 1, br.y - offset), 2);
+		}
+
+		g.chcolor();
 	}
 
     private static final Resource notifsfx = Resource.local().loadwait("sfx/hud/chat");
@@ -1518,14 +1533,24 @@ public class ChatUI extends Widget {
 	}
     }
 
-    public void resize(Coord sz) {
-	super.resize(sz);
-	if(visible)
-	    this.c = base.add(0, -this.sz.y);
-	chansel.resize(new Coord(selw, this.sz.y - marg.y));
-	if(sel != null)
-	    sel.resize(new Coord(this.sz.x - marg.x - sel.c.x, this.sz.y - sel.c.y));
-    }
+	public void resize(Coord sz) {
+		super.resize(sz);
+		if(visible && !manualresize)
+			this.c = base.add(0, -this.sz.y);
+		chansel.resize(new Coord(selw, this.sz.y - marg.y));
+
+		// Resize the selected channel immediately
+		if(sel != null)
+			sel.resize(new Coord(this.sz.x - marg.x - sel.c.x, this.sz.y - sel.c.y));
+
+		// Also resize all other channels so they're ready when switched to
+		for(Widget ch = child; ch != null; ch = ch.next) {
+			if((ch instanceof Channel) && (ch != sel)) {
+				Channel chan = (Channel)ch;
+				chan.resize(new Coord(this.sz.x - marg.x - chan.c.x, this.sz.y - chan.c.y));
+			}
+		}
+	}
 
     public void presize() {
 	if(sz.y > parent.sz.y - UI.scale(100))
@@ -1597,37 +1622,83 @@ public class ChatUI extends Widget {
 	}
     }
 
-    private UI.Grab dm = null;
-    private Coord doff;
-    private static final int minh = 111;
-    public boolean mousedown(MouseDownEvent ev) {
-	int bmfx = (sz.x - bmf.sz().x) / 2;
-	Coord c= ev.c;
-	if((ev.b == 1) && (c.y < bmf.sz().y) && (c.x >= bmfx) && (c.x <= (bmfx + bmf.sz().x))) {
-	    dm = ui.grabmouse(this);
-	    doff = c;
-	    return(true);
-	} else {
-	    return(super.mousedown(ev));
-	}
-    }
+	private UI.Grab dm = null;
+	private Coord doff;
+	private boolean resizecorner = false;
+	private boolean manualresize = false;
+	private static final int minh = 111;
+	private static final int rszm = UI.scale(18);
 
-    public void mousemove(MouseMoveEvent ev) {
-	super.mousemove(ev);
-	if(dm != null)
-	    resize(sz.x, Math.max(UI.scale(minh), Math.min(parent.sz.y - UI.scale(100), sz.y + doff.y - ev.c.y)));
-    }
-
-    public boolean mouseup(MouseUpEvent ev) {
-	if(dm != null) {
-	    dm.remove();
-	    dm = null;
-	    Utils.setprefi("chatsize", UI.unscale(sz.y));
-	    return(true);
-	} else {
-	    return(super.mouseup(ev));
+	public void drag(Coord off) {
+		dm = ui.grabmouse(this);
+		doff = off;
+		resizecorner = false;
 	}
-    }
+
+	public boolean mousedown(MouseDownEvent ev) {
+		Coord c = ev.c;
+
+		if(ev.b == 1) {
+			// Check for corner resize (bottom-right) - highest priority
+			if((c.x >= (sz.x - rszm)) && (c.y >= (sz.y - rszm))) {
+				dm = ui.grabmouse(this);
+				doff = c;
+				resizecorner = true;
+				return(true);
+			}
+
+			// Check for top edge to drag/move window
+			if(c.y < bmf.sz().y) {
+				drag(c);
+				return(true);
+			}
+		}
+
+		return(super.mousedown(ev));
+	}
+
+	public void mousemove(MouseMoveEvent ev) {
+		if(dm != null) {
+			if(resizecorner) {
+				// Corner resize - width and height, keeping TOP-LEFT corner fixed
+				Coord delta = ev.c.sub(doff);
+
+				int neww = Math.max(selw + marg.x + UI.scale(10) + marg.x, sz.x + delta.x);
+				int newh = Math.max(UI.scale(minh), Math.min(parent.sz.y - UI.scale(100), sz.y + delta.y));
+
+				// Set flag to prevent automatic repositioning
+				manualresize = true;
+				resize(new Coord(neww, newh));
+				manualresize = false;
+
+				// Update base to match new size (base is bottom-left)
+				base = this.c.add(0, sz.y);
+
+				doff = ev.c;
+			} else {
+				// Dragging to move window
+				this.c = this.c.add(ev.c.sub(doff));
+				base = this.c.add(0, sz.y);
+			}
+		} else {
+			super.mousemove(ev);
+		}
+	}
+
+	public boolean mouseup(MouseUpEvent ev) {
+		if((ev.b == 1) && (dm != null)) {
+			dm.remove();
+			dm = null;
+			Utils.setprefi("chatsize", UI.unscale(sz.y));
+			if(resizecorner) {
+				Utils.setprefi("chatwidth", UI.unscale(sz.x));
+			}
+			resizecorner = false;
+			return(true);
+		} else {
+			return(super.mouseup(ev));
+		}
+	}
 
     public boolean keydown(KeyDownEvent ev) {
 	boolean M = (ev.mods & KeyMatch.M) != 0;

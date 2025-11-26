@@ -112,31 +112,37 @@ public class TextEntry extends Widget implements ReadLine.Owner {
 	}
     }
 
-    public void draw(GOut g) {
-	Text.Line tcache = this.tcache;
-	if(tcache == null)
-	    this.tcache = tcache = fnd.render(dtext(), (dshow && dirty) ? dirtycol : defcol);
-	int point = buf.point(), mark = buf.mark();
-	g.image(mext, Coord.z, sz);
-	if(mark >= 0) {
-	    int px = tcache.advance(point) - sx, mx = tcache.advance(mark) - sx;
-	    g.chcolor(selcol);
-	    g.frect2(Coord.of(Math.min(px, mx) + toffx, (sz.y - tcache.sz().y) / 2),
-		     Coord.of(Math.max(px, mx) + toffx, (sz.y + tcache.sz().y) / 2));
-	    g.chcolor();
+	public void draw(GOut g) {
+		Text.Line tcache = this.tcache;
+		if(tcache == null)
+			this.tcache = tcache = fnd.render(dtext(), (dshow && dirty) ? dirtycol : defcol);
+		int point = buf.point(), mark = buf.mark();
+
+		// Draw brown background instead of texture
+		g.chcolor(new Color(74, 52, 30, 200)); // Brown with some transparency
+		g.frect(Coord.z, sz);
+		g.chcolor();
+
+		if(mark >= 0) {
+			int px = tcache.advance(point) - sx, mx = tcache.advance(mark) - sx;
+			g.chcolor(selcol);
+			g.frect2(Coord.of(Math.min(px, mx) + toffx, (sz.y - tcache.sz().y) / 2),
+					Coord.of(Math.max(px, mx) + toffx, (sz.y + tcache.sz().y) / 2));
+			g.chcolor();
+		}
+		g.image(tcache.tex(), Coord.of(toffx - sx, (sz.y - tcache.sz().y) / 2));
+
+		// Removed lcap and rcap drawing
+
+		if(hasfocus) {
+			int cx = tcache.advance(point);
+			if(cx < sx) {sx = cx;}
+			if(cx > sx + (sz.x - wmarg)) {sx = cx - (sz.x - wmarg);}
+			int lx = cx - sx;
+			if(((Utils.rtime() - Math.max(focusstart, buf.mtime())) % 1.0) < 0.5)
+				g.image(caret, coff.add(toffx + lx, (sz.y - tcache.img.getHeight()) / 2));
+		}
 	}
-	g.image(tcache.tex(), Coord.of(toffx - sx, (sz.y - tcache.sz().y) / 2));
-	g.image(lcap, Coord.z);
-	g.image(rcap, Coord.of(sz.x - rcap.sz().x, 0));
-	if(hasfocus) {
-	    int cx = tcache.advance(point);
-	    if(cx < sx) {sx = cx;}
-	    if(cx > sx + (sz.x - wmarg)) {sx = cx - (sz.x - wmarg);}
-	    int lx = cx - sx;
-	    if(((Utils.rtime() - Math.max(focusstart, buf.mtime())) % 1.0) < 0.5)
-		g.image(caret, coff.add(toffx + lx, (sz.y - tcache.img.getHeight()) / 2));
-	}
-    }
 
     public TextEntry(int w, String deftext) {
 	super(new Coord(w, mext.sz().y));
