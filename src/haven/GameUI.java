@@ -1192,8 +1192,55 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 			super(sz, "Minimap", true);
 			this.mmap = add(mmap, Coord.z);
 			mmap.resize(sz);
+
+			addMapButtons();
 		}
-//Noodle
+
+		private void toggleol(String tag, boolean a) {
+			if(map != null) {
+				if(a)
+					map.enol(tag);
+				else
+					map.disol(tag);
+			}
+		}
+
+		private void addMapButtons() {
+			int buttonSize = UI.scale(16);
+			int spacing = UI.scale(2);
+			int startX = UI.scale(60);
+			int titleY = UI.scale(-18);
+			Coord btnSz = new Coord(buttonSize, buttonSize);
+
+			add(new ScaledMenuCheckBox("lbtn-claim", kb_claim, "Display personal claims", btnSz), startX, titleY).changed(a -> toggleol("cplot", a));
+			startX += buttonSize + spacing;
+
+			add(new ScaledMenuCheckBox("lbtn-vil", kb_vil, "Display village claims", btnSz), startX, titleY).changed(a -> toggleol("vlg", a));
+			startX += buttonSize + spacing;
+
+			add(new ScaledMenuCheckBox("lbtn-rlm", kb_rlm, "Display provinces", btnSz), startX, titleY).changed(a -> toggleol("prov", a));
+			startX += buttonSize + spacing;
+
+			add(new ScaledMenuCheckBox("lbtn-map", kb_map, "Map", btnSz), startX, titleY).state(() -> wndstate(mapfile)).click(() -> {
+				togglewnd(mapfile);
+				if(mapfile != null)
+					Utils.setprefb("wndvis-map", mapfile.visible());
+			});
+			startX += buttonSize + spacing;
+
+			add(new ScaledMenuCheckBox("lbtn-ico", kb_ico, "Icon settings", btnSz), startX, titleY).state(() -> wndstate(iconwnd)).click(() -> {
+				if(iconconf == null)
+					return;
+				if(iconwnd == null) {
+					iconwnd = new GobIcon.SettingsWindow(iconconf);
+					fitwdg(GameUI.this.add(iconwnd, Utils.getprefc("wndc-icon", new Coord(200, 200))));
+				} else {
+					ui.destroy(iconwnd);
+					iconwnd = null;
+				}
+			});
+		}
+
 		public void resize(Coord sz) {
 			super.resize(sz);
 			Coord mmapsz = contentsz();
@@ -1210,6 +1257,27 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 
 		protected Deco makedeco() {
 			return new SimpleDeco(this);
+		}
+	}
+
+	public static class ScaledMenuCheckBox extends MenuCheckBox {
+		private final Coord tsz;
+
+		public ScaledMenuCheckBox(String base, KeyBinding gkey, String tooltip, Coord sz) {
+			super(base, gkey, tooltip);
+			this.tsz = sz;
+		}
+
+		public void draw(GOut g) {
+			if(up != null)
+				g.image(a ? down : up, Coord.z, tsz);
+			if(h && (hoverup != null))
+				g.image(a ? hoverdown : hoverup, Coord.z, tsz);
+		}
+
+		protected void added() {
+			super.added();
+			resize(tsz);
 		}
 	}
 
@@ -1512,28 +1580,28 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	    }
 	}
 
-	public MapMenu() {
-	    super(mapmenubg.sz());
-	    add(new MenuCheckBox("lbtn-claim", kb_claim, "Display personal claims"), 0, 0).changed(a -> toggleol("cplot", a));
-	    add(new MenuCheckBox("lbtn-vil", kb_vil, "Display village claims"), 0, 0).changed(a -> toggleol("vlg", a));
-	    add(new MenuCheckBox("lbtn-rlm", kb_rlm, "Display provinces"), 0, 0).changed(a -> toggleol("prov", a));
-	    add(new MenuCheckBox("lbtn-map", kb_map, "Map")).state(() -> wndstate(mapfile)).click(() -> {
-		    togglewnd(mapfile);
-		    if(mapfile != null)
-			Utils.setprefb("wndvis-map", mapfile.visible());
-		});
-	    add(new MenuCheckBox("lbtn-ico", kb_ico, "Icon settings"), 0, 0).state(() -> wndstate(iconwnd)).click(() -> {
-		    if(iconconf == null)
-			return;
-		    if(iconwnd == null) {
-			iconwnd = new GobIcon.SettingsWindow(iconconf);
-			fitwdg(GameUI.this.add(iconwnd, Utils.getprefc("wndc-icon", new Coord(200, 200))));
-		    } else {
-			ui.destroy(iconwnd);
-			iconwnd = null;
-		    }
-		});
-	}
+	//public MapMenu() {
+	    //super(mapmenubg.sz());
+	    //add(new MenuCheckBox("lbtn-claim", kb_claim, "Display personal claims"), 0, 0).changed(a -> toggleol("cplot", a));
+	    //add(new MenuCheckBox("lbtn-vil", kb_vil, "Display village claims"), 0, 0).changed(a -> toggleol("vlg", a));
+	    //add(new MenuCheckBox("lbtn-rlm", kb_rlm, "Display provinces"), 0, 0).changed(a -> toggleol("prov", a));
+	    //add(new MenuCheckBox("lbtn-map", kb_map, "Map")).state(() -> wndstate(mapfile)).click(() -> {
+		    //togglewnd(mapfile);
+		    //if(mapfile != null)
+			//Utils.setprefb("wndvis-map", mapfile.visible());
+		//});
+	    //add(new MenuCheckBox("lbtn-ico", kb_ico, "Icon settings"), 0, 0).state(() -> wndstate(iconwnd)).click(() -> {
+		    //if(iconconf == null)
+			//return;
+		    //if(iconwnd == null) {
+			//iconwnd = new GobIcon.SettingsWindow(iconconf);
+			//fitwdg(GameUI.this.add(iconwnd, Utils.getprefc("wndc-icon", new Coord(200, 200))));
+		    //} else {
+			//ui.destroy(iconwnd);
+			//iconwnd = null;
+		   //}
+		//});
+	//}
 
 		public void draw(GOut g) {
 			super.draw(g);
@@ -1545,41 +1613,44 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
     public static final KeyBinding kb_hide = KeyBinding.get("ui-toggle", KeyMatch.nil);
     public static final KeyBinding kb_logout = KeyBinding.get("logout", KeyMatch.nil);
     public static final KeyBinding kb_switchchr = KeyBinding.get("logout-cs", KeyMatch.nil);
-    public boolean globtype(GlobKeyEvent ev) {
-	if(ev.c == ':') {
-	    entercmd();
-	    return(true);
-	} else if(kb_shoot.key().match(ev) && (Screenshooter.screenurl.get() != null)) {
-	    Screenshooter.take(this, Screenshooter.screenurl.get());
-	    return(true);
-	} else if(kb_hide.key().match(ev)) {
-	    toggleui();
-	    return(true);
-	} else if(kb_logout.key().match(ev)) {
-	    act("lo");
-	    return(true);
-	} else if(kb_switchchr.key().match(ev)) {
-	    act("lo", "cs");
-	    return(true);
-	} else if(kb_chat.key().match(ev)) {
-	    if(chat.visible() && !chat.hasfocus) {
-		setfocus(chat);
-	    } else {
-		if(chat.targetshow) {
-		    chat.sshow(false);
-		} else {
-		    chat.sshow(true);
-		    setfocus(chat);
+	public boolean globtype(GlobKeyEvent ev) {
+		if(ev.c == ':') {
+			entercmd();
+			return(true);
+		} else if(kb_shoot.key().match(ev) && (Screenshooter.screenurl.get() != null)) {
+			Screenshooter.take(this, Screenshooter.screenurl.get());
+			return(true);
+		} else if(kb_hide.key().match(ev)) {
+			toggleui();
+			return(true);
+		} else if(kb_logout.key().match(ev)) {
+			act("lo");
+			return(true);
+		} else if(kb_switchchr.key().match(ev)) {
+			act("lo", "cs");
+			return(true);
+		} else if(kb_chat.key().match(ev)) {
+			if(chat.visible() && !chat.hasfocus) {
+				setfocus(chat);
+			} else {
+				if(chat.targetshow) {
+					chat.sshow(false);
+				} else {
+					chat.sshow(true);
+					setfocus(chat);
+				}
+			}
+			Utils.setprefb("chatvis", chat.targetshow);
+			return(true);
+		} else if(ev.c == 'X' && (ev.mods & KeyMatch.C) != 0) {  // Ctrl+X
+			new Thread(new ExtractMapIcons()).start();
+			return(true);
+		} else if((ev.c == 27) && (map != null) && !map.hasfocus) {
+			setfocus(map);
+			return(true);
 		}
-	    }
-	    Utils.setprefb("chatvis", chat.targetshow);
-	    return(true);
-	} else if((ev.c == 27) && (map != null) && !map.hasfocus) {
-	    setfocus(map);
-	    return(true);
+		return(super.globtype(ev));
 	}
-	return(super.globtype(ev));
-    }
 
     private int uimode = 1;
     public void toggleui(int mode) {

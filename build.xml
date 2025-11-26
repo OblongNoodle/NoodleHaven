@@ -210,5 +210,12 @@
       </classpath>
     </java>
   </target>
-
+  <target name="extract-map-icons" depends="jars">
+    <java classname="haven.ExtractMapIcons" fork="true">
+      <classpath>
+        <pathelement path="build/hafen.jar"/>
+        <pathelement path="build/hafen-res.jar"/>
+      </classpath>
+    </java>
+  </target>
 </project>
