@@ -50,11 +50,11 @@ public class SimpleDeco extends Window.DragDeco {
         g.rect(Coord.z, sz);
         g.rect(Coord.of(1, 1), sz.sub(2, 2));
 
-        // Title bar - your custom brown color
+        // Title bar - custom brown
         g.chcolor(54, 47, 36, 255);
         g.frect(Coord.of(2, 2), new Coord(sz.x - 4, UI.scale(20)));
 
-        // Window background - same brown color
+        // Window background - custom brown
         g.chcolor(54, 47, 36, 255);
         g.frect(Coord.of(2, UI.scale(22)), new Coord(sz.x - 4, sz.y - UI.scale(24)));
         g.chcolor();
@@ -65,6 +65,23 @@ public class SimpleDeco extends Window.DragDeco {
             Text title = cf.render(wnd.cap, java.awt.Color.WHITE);
             g.image(title.tex(), Coord.of(UI.scale(6), UI.scale(5)));
         }
+        Coord br = sz.sub(UI.scale(3), UI.scale(3));
+        int size = UI.scale(12);
+
+        g.chcolor(94, 75, 60, 255);
+        for(int i = 0; i < size; i++) {
+            g.line(new Coord(br.x - i, br.y),
+                    new Coord(br.x, br.y - i), 2);
+        }
+
+        g.chcolor(50, 40, 30, 255);
+        for(int i = 0; i < 3; i++) {
+            int offset = i * UI.scale(3) + UI.scale(2);
+            g.line(new Coord(br.x - offset, br.y - 1),
+                    new Coord(br.x - 1, br.y - offset), 2);
+        }
+
+        g.chcolor();
     }
 
     public boolean checkhit(Coord c) {
@@ -72,15 +89,18 @@ public class SimpleDeco extends Window.DragDeco {
     }
 
     public boolean mousedown(MouseDownEvent ev) {
-        if(super.mousedown(ev))
-            return true;
+        System.out.println("SimpleDeco mousedown at: " + ev.c + ", sz=" + sz + ", dragsize=" + dragsize);
 
         if(dragsize && (ev.b == 1)) {
             Coord c = ev.c;
 
-            // Check if in any resize zone - check this BEFORE super.mousedown
-            if(c.x < rszm || c.x >= (sz.x - rszm) ||
-                    c.y < rszm || c.y >= (sz.y - rszm)) {
+            // Increase resize margin to match visual handle size
+            int resizeMargin = UI.scale(18);
+
+            // Check if in any resize zone
+            if(c.x < resizeMargin || c.x >= (sz.x - resizeMargin) ||
+                    c.y < resizeMargin || c.y >= (sz.y - resizeMargin)) {
+                System.out.println("RESIZE ZONE HIT!");
                 Window wnd = (Window)parent;
                 wnd.parent.setfocus(wnd);
                 wnd.raise();
@@ -89,6 +109,9 @@ public class SimpleDeco extends Window.DragDeco {
                 return true;
             }
         }
+
+        if(super.mousedown(ev))
+            return true;
 
         return false;
     }
