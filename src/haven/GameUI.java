@@ -1504,14 +1504,6 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	}
 
 		public void draw(GOut g) {
-			g.chcolor(0, 0, 0, 200);
-			g.frect(Coord.z, sz);
-			g.chcolor();
-
-			g.chcolor(60, 60, 60, 255);
-			g.rect(Coord.z, sz);
-			g.chcolor();
-
 			super.draw(g);
 		}
     }
@@ -1749,20 +1741,20 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 	}
 
 		public void draw(GOut g) {
-			// Draw simple dark background instead of ornate texture
-			g.chcolor(0, 0, 0, 200);
-			g.frect(Coord.z, sz);
-			g.chcolor();
-
-			// Draw simple border
-			g.chcolor(60, 60, 60, 255);
-			g.rect(Coord.z, sz);
-			g.chcolor();
 
 			for(int i = 0; i < 10; i++) {
 				int slot = i + (curbelt * 12);
 				Coord c = beltc(i);
-				g.image(invsq, beltc(i));
+
+				g.chcolor(54, 47, 36, 255);
+				g.frect(c, invsq.sz());
+
+				// Draw border
+				g.chcolor(0, 0, 0, 255);
+				g.rect(c, invsq.sz());
+				g.chcolor();
+
+				//g.image(invsq, beltc(i));
 				try {
 					if(belt[slot] != null) {
 						belt[slot].draw(g.reclip(c.add(UI.scale(1), UI.scale(1)), invsq.sz().sub(UI.scale(2), UI.scale(2))));

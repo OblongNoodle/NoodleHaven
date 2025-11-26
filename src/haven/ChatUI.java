@@ -379,7 +379,7 @@ public class ChatUI extends Widget {
 	}
 
 	public void draw(GOut g) {
-	    g.chcolor(0, 0, 0, 128);
+		g.chcolor(54, 47, 36, 200);
 	    g.frect(Coord.z, sz);
 	    g.chcolor();
 	    int sy = (int)Math.round(dy), h = ih(), w = iw();
@@ -1260,6 +1260,9 @@ public class ChatUI extends Widget {
 	}
 
 	public void draw(GOut g) {
+		g.chcolor(54, 47, 36, 200);
+		g.frect(Coord.z, sz);
+		g.chcolor();
 	    int ds = (int)Math.round(this.ds);
 	    synchronized(chls) {
 		for(int i = ds / offset; i < chls.size(); i++) {
@@ -1477,12 +1480,12 @@ public class ChatUI extends Widget {
     private static final Tex bmf = Resource.loadtex("gfx/hud/chat-mid");
     private static final Tex bcbd = Resource.loadtex("gfx/hud/chat-close-g");
 	public void draw(GOut g) {
-		g.chcolor(0, 0, 0, 200);
+		g.chcolor(54, 47, 36, 200);  // Same brown, semi-transparent
 		g.frect(Coord.z, sz);
 		g.chcolor();
 
-		g.chcolor(60, 60, 60, 255);
-		g.rect(Coord.z, sz);
+		g.chcolor(54, 47, 36, 200);  // Same brown, semi-transparent
+		g.frect(Coord.z, sz);
 		g.chcolor();
 
 		super.draw(g);
