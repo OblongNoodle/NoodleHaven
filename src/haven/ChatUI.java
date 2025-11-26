@@ -275,9 +275,9 @@ public class ChatUI extends Widget {
 
 	public Channel(boolean closable) {
 	    sb = add(new Scrollbar(0, 0, 0));
-	    if(closable)
-		cb = add(new IButton("gfx/hud/chat-close", "", "-d", "-h"));
-	    else
+	    //if(closable)
+		//cb = add(new IButton("gfx/hud/chat-close", "", "-d", "-h"));
+	    //else
 		cb = null;
 	}
 
@@ -1285,7 +1285,10 @@ public class ChatUI extends Widget {
 			g.aimage(icon, Coord.of(x, my), 0.0, 0.5); x += icon.sz().x;
 			g.aimage(name, Coord.of(x, my), 0.0, 0.5);
 		    }
-		    g.image(chandiv, Coord.of(0, y + chanseld.sz().y));
+			g.chcolor(50, 40, 30, 255);  // Dark brown
+			g.line(Coord.of(0, y + chanseld.sz().y),
+					Coord.of(sz.x, y + chanseld.sz().y), 1);
+			g.chcolor();
 		}
 	    }
 	}

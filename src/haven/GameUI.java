@@ -1731,33 +1731,33 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 
 	public NKeyBelt() {
 	    super(nkeybg.sz());
-	    adda(new IButton("gfx/hud/hb-btn-chat", "", "-d", "-h") {
-		    Tex glow;
-		    {
-			this.tooltip = RichText.render("Chat ($col[255,255,0]{Ctrl+C})", 0);
-			glow = new TexI(PUtils.rasterimg(PUtils.blurmask(up.getRaster(), UI.scale(2), UI.scale(2), Color.WHITE)));
-		    }
+	    //adda(new IButton("gfx/hud/hb-btn-chat", "", "-d", "-h") {
+		    //Tex glow;
+		    //{
+			//this.tooltip = RichText.render("Chat ($col[255,255,0]{Ctrl+C})", 0);
+			//glow = new TexI(PUtils.rasterimg(PUtils.blurmask(up.getRaster(), UI.scale(2), UI.scale(2), Color.WHITE)));
+		    //}
 
-		    public void click() {
-			if(chat.targetshow) {
-			    chat.sshow(false);
-			} else {
-			    chat.sshow(true);
-			    setfocus(chat);
-			}
-			Utils.setprefb("chatvis", chat.targetshow);
-		    }
+		    //public void click() {
+			//if(chat.targetshow) {
+			    //chat.sshow(false);
+			//} else {
+			    //chat.sshow(true);
+			    //setfocus(chat);
+			//}
+			//Utils.setprefb("chatvis", chat.targetshow);
+		    //}
 
-		    public void draw(GOut g) {
-			super.draw(g);
-			Color urg = chat.urgcols[chat.urgency];
-			if(urg != null) {
-			    GOut g2 = g.reclipl2(UI.scale(-4, -4), g.sz().add(UI.scale(4, 4)));
-			    g2.chcolor(urg.getRed(), urg.getGreen(), urg.getBlue(), 128);
-			    g2.image(glow, Coord.z);
-			}
-		    }
-		}, sz, 1, 1);
+		    //public void draw(GOut g) {
+			//super.draw(g);
+			//Color urg = chat.urgcols[chat.urgency];
+			//if(urg != null) {
+			    //GOut g2 = g.reclipl2(UI.scale(-4, -4), g.sz().add(UI.scale(4, 4)));
+			    //g2.chcolor(urg.getRed(), urg.getGreen(), urg.getBlue(), 128);
+			    //g2.image(glow, Coord.z);
+			//}
+		    //}
+		//}, sz, 1, 1);
 	}
 	
 	private Coord beltc(int i) {
