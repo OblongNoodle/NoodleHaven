@@ -94,12 +94,11 @@ public class SimpleDeco extends Window.DragDeco {
         if(dragsize && (ev.b == 1)) {
             Coord c = ev.c;
 
-            // Increase resize margin to match visual handle size
+            // Only allow resize from bottom-right corner
             int resizeMargin = UI.scale(18);
 
-            // Check if in any resize zone
-            if(c.x < resizeMargin || c.x >= (sz.x - resizeMargin) ||
-                    c.y < resizeMargin || c.y >= (sz.y - resizeMargin)) {
+            // Check if in BOTTOM-RIGHT corner only
+            if((c.x >= (sz.x - resizeMargin)) && (c.y >= (sz.y - resizeMargin))) {
                 System.out.println("RESIZE ZONE HIT!");
                 Window wnd = (Window)parent;
                 wnd.parent.setfocus(wnd);
