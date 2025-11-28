@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="hafen-updater">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/noodlehaven/ui/hafen-updater.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
