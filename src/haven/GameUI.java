@@ -1650,7 +1650,7 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Notice.
 			Utils.setprefb("chatvis", chat.targetshow);
 			return(true);
 		} else if(ev.c == 'X' && (ev.mods & KeyMatch.C) != 0) {  // Ctrl+X
-			new Thread(new ExtractMapIcons()).start();
+			//new Thread(new ExtractMapIcons()).start();
 			return(true);
 		} else if((ev.c == 27) && (map != null) && !map.hasfocus) {
 			setfocus(map);
