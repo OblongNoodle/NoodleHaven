@@ -4,6 +4,9 @@ echo Checking for updates...
 REM Create build directory if it doesn't exist
 if not exist "build" mkdir build
 
+REM Create initial ver file if it doesn't exist
+if not exist "build\ver" echo. 2>nul > build\ver
+
 REM Run updater from within build directory
 cd build
 java -jar ..\hafen-updater.jar update https://raw.githubusercontent.com/OblongNoodle/NoodleHaven/update/ -Djava.util.logging.config.file=..\logging.properties
