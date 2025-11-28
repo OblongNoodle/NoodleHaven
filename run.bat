@@ -1,25 +1,14 @@
 @echo off
-echo Checking for updates...
-
-REM Create build directory if it doesn't exist
-if not exist "build" mkdir build
-
-REM Create initial ver file if it doesn't exist
-if not exist "build\ver" echo. 2>nul > build\ver
-
-REM Run updater from within build directory
-cd build
-java -jar ..\hafen-updater.jar update https://raw.githubusercontent.com/OblongNoodle/NoodleHaven/update/ -Djava.util.logging.config.file=..\logging.properties
-cd ..
-
-if not exist "build\hafen.jar" (
-    echo ERROR: hafen.jar not found. Updater may have failed.
-    pause
-    exit /b 1
+echo Building NoodleHaven...
+call ant
+if %ERRORLEVEL% NEQ 0 (
+    echo Build failed!
+    PAUSE
+    exit /b %ERRORLEVEL%
 )
-
-echo Launching NoodleHaven...
-start "" javaw -Xms512m -Xmx3072m ^
+echo Build successful! Launching client...
+cd bin
+java -Xms512m -Xmx3072m ^
   -Dsun.java2d.uiScale.enabled=false ^
   -Djava.net.preferIPv6Addresses=system ^
   -Dhaven.renderer=lwjgl ^
@@ -27,4 +16,5 @@ start "" javaw -Xms512m -Xmx3072m ^
   --add-exports=java.desktop/sun.awt=ALL-UNNAMED ^
   --add-exports=java.desktop/sun.java2d=ALL-UNNAMED ^
   --enable-native-access=ALL-UNNAMED ^
-  -jar build/hafen.jar
+  -jar hafen.jar game.havenandhearth.com
+PAUSE
