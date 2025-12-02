@@ -4,8 +4,7 @@ if not exist "build" mkdir build
 if not exist "build\ver" echo. 2>nul > build\ver
 cd build
 java -jar ..\hafen-updater.jar update https://raw.githubusercontent.com/OblongNoodle/NoodleHaven/update/
-cd ..
-if not exist "build\hafen.jar" (
+if not exist "hafen.jar" (
     echo ERROR: hafen.jar not found. Updater may have failed.
     pause
     exit /b 1
