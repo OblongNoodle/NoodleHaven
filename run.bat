@@ -19,4 +19,4 @@ start "" javaw -Xms512m -Xmx3072m ^
   --add-exports=java.desktop/sun.awt=ALL-UNNAMED ^
   --add-exports=java.desktop/sun.java2d=ALL-UNNAMED ^
   --enable-native-access=ALL-UNNAMED ^
-  -jar build/hafen.jar game.havenandhearth.com
+  -jar hafen.jar game.havenandhearth.com
